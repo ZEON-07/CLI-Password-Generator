@@ -139,7 +139,7 @@ public class Main {
         
         if (password.length() >= 12 && categories == 4) {
             return "Strong";
-        } else if (password.length() >= 8 && (hasLower || hasUpper) && hasDigit) {
+        } else if (password.length() >= 8 && categories >= 2) {
             return "Good";
         } else {
             return "Weak";
