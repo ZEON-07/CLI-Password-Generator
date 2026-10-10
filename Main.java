@@ -66,8 +66,8 @@ public class Main {
         System.out.println("\nGenerated Password: " + password);
 
         // TODO Issue 2: Evaluate and print password strength
-        // String strength = evaluateStrength(password);
-        // System.out.println("Password Strength: " + strength);
+        String strength = evaluateStrength(password);
+        System.out.println("Password Strength: " + strength);
     }
 
     /**
@@ -125,11 +125,24 @@ public class Main {
      * @return Strength level: "Weak", "Good", or "Strong"
      */
     public static String evaluateStrength(String password) {
-        // TODO Issue 2: Write logic to score password based on length and character diversity
-        // Example criteria:
-        // - "Weak": short (< 8 chars) or single character set
-        // - "Good": moderate length (>= 8 chars) with mix of letters & numbers
-        // - "Strong": long (>= 12 chars) with uppercase, lowercase, numbers, and special chars
-        return "Not Evaluated";
+        if (password == null || password.length() == 0) return "Weak";
+        
+        boolean hasLower = false, hasUpper = false, hasDigit = false, hasSpecial = false;
+        for (char c : password.toCharArray()) {
+            if (Character.isLowerCase(c)) hasLower = true;
+            else if (Character.isUpperCase(c)) hasUpper = true;
+            else if (Character.isDigit(c)) hasDigit = true;
+            else hasSpecial = true;
+        }
+        
+        int categories = (hasLower ? 1 : 0) + (hasUpper ? 1 : 0) + (hasDigit ? 1 : 0) + (hasSpecial ? 1 : 0);
+        
+        if (password.length() >= 12 && categories == 4) {
+            return "Strong";
+        } else if (password.length() >= 8 && categories >= 2) {
+            return "Good";
+        } else {
+            return "Weak";
+        }
     }
 }
