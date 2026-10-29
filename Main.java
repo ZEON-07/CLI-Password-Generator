@@ -1,5 +1,7 @@
 import java.security.SecureRandom;
+import java.util.LinkedHashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * CLI Password Generator - Starter Project
@@ -23,7 +25,7 @@ public class Main {
         while (running) {
             System.out.println("\nMenu Options:");
             System.out.println("1. Generate Password");
-            System.out.println("2. Generate Batch of 5 Passwords [TODO]");
+            System.out.println("2. Generate Batch of 5 Passwords");
             System.out.println("3. Exit");
             System.out.print("Select an option (1-3): ");
 
@@ -74,9 +76,23 @@ public class Main {
      * Handles batch password generation.
      */
     private static void handleGenerateBatch(Scanner scanner) {
-        // TODO Issue 3: Allow the user to generate a batch of 5 passwords at once.
-        System.out.println("\n[Feature Not Implemented Yet]");
-        System.out.println("Open Issue 3: Implement batch generation of 5 passwords.");
+        int length = promptForLength(scanner);
+        if (length <= 0) {
+            System.out.println("Operation cancelled or invalid length.");
+            return;
+        }
+
+        Set<String> passwords = new LinkedHashSet<>();
+        while (passwords.size() < 5) {
+            passwords.add(generatePassword(length));
+        }
+
+        System.out.println("\nGenerated Batch of 5 Passwords:");
+        int count = 1;
+        for (String pwd : passwords) {
+            System.out.println(count++ + ". " + pwd + " (Strength: " + evaluateStrength(pwd) + ")");
+        }
+
     }
 
     /**
