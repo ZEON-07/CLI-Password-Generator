@@ -6,6 +6,8 @@ A beginner-friendly Java command-line interface (CLI) application for generating
 
 ## Getting Started
 
+Checkout [SimpleDoc](DOCUMENTATION.md) for a simplified version.
+
 ### Prerequisites
 
 - **Java Development Kit (JDK)**: Version 8 or higher (JDK 17+ recommended).
