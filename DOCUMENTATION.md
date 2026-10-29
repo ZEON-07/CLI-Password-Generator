@@ -1,10 +1,6 @@
 # CLI Password Generator
 ## ZEON-07
 
-![Java](https://shields.io)
-![Rust](https://shields.io)
-![Go](https://shields.io)
-
 Pre-requisites
 - JAVA SDK
 - GO (Optional)
