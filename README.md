@@ -19,6 +19,10 @@ Checkout [SimpleDoc](DOCUMENTATION.md) for a simplified version.
   ```bash
   gcc --version
   ```
+- **C++ Compiler** (for C++ version): GCC (g++), Clang (clang++), or MSVC (C++17 recommended).
+  ```bash
+  g++ --version
+  ```
 
 ---
 
@@ -48,6 +52,22 @@ Checkout [SimpleDoc](DOCUMENTATION.md) for a simplified version.
    - **Linux / macOS**:
      ```bash
      ./password_generator
+     ```
+
+### C++ Version
+
+1. Compile with `g++`:
+   ```bash
+   g++ -Wall -Wextra -std=c++17 -O2 main.cpp -o password_generator_cpp
+   ```
+2. Run the compiled application:
+   - **Windows**:
+     ```cmd
+     password_generator_cpp.exe
+     ```
+   - **Linux / macOS**:
+     ```bash
+     ./password_generator_cpp
      ```
 
 ---
@@ -105,6 +125,7 @@ Pick up and resolve the following open tasks in [Main.java](file:///c:/Code%20Ar
 CLI Password Generator/
 ├── Main.java           # Java CLI application
 ├── main.c              # C port of the CLI application
+├── main.cpp            # C++ port of the CLI application
 ├── Makefile            # Build configuration for C version
 └── README.md           # Documentation, build instructions, and challenges
 ```
