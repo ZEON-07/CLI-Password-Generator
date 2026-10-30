@@ -163,6 +163,87 @@ int prompt_for_length(void) {
 }
 
 /**
+ * Exports a list of passwords to a CSV file, appending new entries and writing headers if new.
+ *
+ * @param passwords Array of password strings
+ * @param count Number of passwords
+ * @param filename Target CSV filename
+ */
+void export_to_csv(const char **passwords, int count, const char *filename) {
+    if (!passwords || count <= 0 || !filename) return;
+
+    bool write_header = true;
+    FILE *check = fopen(filename, "r");
+    if (check != NULL) {
+        fseek(check, 0, SEEK_END);
+        if (ftell(check) > 0) {
+            write_header = false;
+        }
+        fclose(check);
+    }
+
+    FILE *f = fopen(filename, "a");
+    if (f == NULL) {
+        printf("Error writing to CSV file: Unable to open '%s'\n", filename);
+        return;
+    }
+
+    if (write_header) {
+        fprintf(f, "Timestamp,Password,Length,Strength\n");
+    }
+
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+    char timestamp[32];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S", tm_info);
+
+    for (int i = 0; i < count; i++) {
+        const char *pwd = passwords[i];
+        fprintf(f, "%s,%s,%zu,%s\n", timestamp, pwd, strlen(pwd), evaluate_strength(pwd));
+    }
+
+    fclose(f);
+    printf("Successfully exported %d password(s) to %s\n", count, filename);
+}
+
+/**
+ * Prompts user whether to export generated passwords to a CSV file.
+ *
+ * @param passwords Array of password strings
+ * @param count Number of passwords
+ */
+void prompt_and_export_csv(const char **passwords, int count) {
+    char buffer[128];
+    printf("\nExport to CSV? (y/n): ");
+    fflush(stdout);
+
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) return;
+    trim(buffer);
+
+    if (strcmp(buffer, "y") == 0 || strcmp(buffer, "Y") == 0 ||
+        strcmp(buffer, "yes") == 0 || strcmp(buffer, "YES") == 0) {
+        printf("Enter filename (default: passwords.csv): ");
+        fflush(stdout);
+
+        char filename[256];
+        if (fgets(filename, sizeof(filename), stdin) == NULL) return;
+        trim(filename);
+
+        if (filename[0] == '\0') {
+            strncpy(filename, "passwords.csv", sizeof(filename) - 1);
+            filename[sizeof(filename) - 1] = '\0';
+        } else {
+            size_t len = strlen(filename);
+            if (len < 4 || strcmp(filename + len - 4, ".csv") != 0) {
+                strncat(filename, ".csv", sizeof(filename) - len - 1);
+            }
+        }
+
+        export_to_csv(passwords, count, filename);
+    }
+}
+
+/**
  * Handles user interaction for generating a single password.
  */
 void handle_generate_single(void) {
@@ -177,6 +258,9 @@ void handle_generate_single(void) {
 
     printf("\nGenerated Password: %s\n", password);
     printf("Password Strength: %s\n", evaluate_strength(password));
+
+    const char *pwds[1] = { password };
+    prompt_and_export_csv(pwds, 1);
 
     free(password);
 }
@@ -217,6 +301,11 @@ void handle_generate_batch(void) {
     printf("\nGenerated Batch of 5 Passwords:\n");
     for (int i = 0; i < count; i++) {
         printf("%d. %s (Strength: %s)\n", i + 1, passwords[i], evaluate_strength(passwords[i]));
+    }
+
+    prompt_and_export_csv((const char **)passwords, count);
+
+    for (int i = 0; i < count; i++) {
         free(passwords[i]);
     }
 }
