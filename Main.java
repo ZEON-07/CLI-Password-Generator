@@ -22,6 +22,9 @@ import java.util.Set;
 public class Main {
 
     private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+    private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String DIGITS = "0123456789";
+    private static final String SPECIAL = "!@#$%^&*()-_=+[]{}|;:,.<>?";
     private static final SecureRandom random = new SecureRandom();
 
     public static void main(String[] args) {
@@ -70,11 +73,11 @@ public class Main {
             return;
         }
 
-        // TODO Issue 1: Prompt user whether to include numbers and special characters
-        // boolean includeNumbers = ...
-        // boolean includeSpecial = ...
+        boolean includeUpper = promptYesNo(scanner, "Include uppercase letters? (y/n): ");
+        boolean includeNumbers = promptYesNo(scanner, "Include numbers? (y/n): ");
+        boolean includeSpecial = promptYesNo(scanner, "Include special characters? (y/n): ");
 
-        String password = generatePassword(length);
+        String password = generatePassword(length, includeUpper, includeNumbers, includeSpecial);
         System.out.println("\nGenerated Password: " + password);
 
         // TODO Issue 2: Evaluate and print password strength
@@ -94,9 +97,13 @@ public class Main {
             return;
         }
 
+        boolean includeUpper = promptYesNo(scanner, "Include uppercase letters? (y/n): ");
+        boolean includeNumbers = promptYesNo(scanner, "Include numbers? (y/n): ");
+        boolean includeSpecial = promptYesNo(scanner, "Include special characters? (y/n): ");
+
         Set<String> passwords = new LinkedHashSet<>();
         while (passwords.size() < 5) {
-            passwords.add(generatePassword(length));
+            passwords.add(generatePassword(length, includeUpper, includeNumbers, includeSpecial));
         }
 
         System.out.println("\nGenerated Batch of 5 Passwords:");
@@ -104,8 +111,16 @@ public class Main {
         for (String pwd : passwords) {
             System.out.println(count++ + ". " + pwd + " (Strength: " + evaluateStrength(pwd) + ")");
         }
-
         promptAndExport(scanner, passwords);
+    }
+
+    /**
+     * Prompts user with a yes/no question.
+     */
+    private static boolean promptYesNo(Scanner scanner, String prompt) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+        return input.equalsIgnoreCase("y") || input.equalsIgnoreCase("yes");
     }
 
     /**
@@ -133,17 +148,58 @@ public class Main {
      * @return Generated password string
      */
     public static String generatePassword(int length) {
-        // Starter logic: Only lowercase characters
-        StringBuilder sb = new StringBuilder(length);
+        return generatePassword(length, false, false, false);
+    }
 
-        // TODO Issue 1: Extend character pool to include uppercase letters, numbers, and symbols based on user input
-        String characterPool = LOWERCASE;
+    /**
+     * Generates a random password with configurable character sets.
+     * Guarantees at least one character from each selected category.
+     *
+     * @param length Desired character count
+     * @param includeUpper Whether to include uppercase letters
+     * @param includeNumbers Whether to include digits
+     * @param includeSpecial Whether to include special symbols
+     * @return Generated password string
+     */
+    public static String generatePassword(int length, boolean includeUpper, boolean includeNumbers, boolean includeSpecial) {
+        StringBuilder poolBuilder = new StringBuilder(LOWERCASE);
+        List<Character> chars = new ArrayList<>(length);
 
-        for (int i = 0; i < length; i++) {
-            int index = random.nextInt(characterPool.length());
-            sb.append(characterPool.charAt(index));
+        // Guarantee at least one lowercase character
+        chars.add(LOWERCASE.charAt(random.nextInt(LOWERCASE.length())));
+
+        if (includeUpper) {
+            poolBuilder.append(UPPERCASE);
+            chars.add(UPPERCASE.charAt(random.nextInt(UPPERCASE.length())));
+        }
+        if (includeNumbers) {
+            poolBuilder.append(DIGITS);
+            chars.add(DIGITS.charAt(random.nextInt(DIGITS.length())));
+        }
+        if (includeSpecial) {
+            poolBuilder.append(SPECIAL);
+            chars.add(SPECIAL.charAt(random.nextInt(SPECIAL.length())));
         }
 
+        String characterPool = poolBuilder.toString();
+
+        while (chars.size() < length) {
+            int index = random.nextInt(characterPool.length());
+            chars.add(characterPool.charAt(index));
+        }
+
+        // Fisher-Yates shuffle to randomize positions
+        for (int i = chars.size() - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            char temp = chars.get(i);
+            chars.set(i, chars.get(j));
+            chars.set(j, temp);
+        }
+
+        StringBuilder sb = new StringBuilder(length);
+        for (char c : chars) {
+            sb.append(c);
+        }
         return sb.toString();
     }
 

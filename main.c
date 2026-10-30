@@ -18,6 +18,9 @@
 #endif
 
 static const char LOWERCASE[] = "abcdefghijklmnopqrstuvwxyz";
+static const char UPPERCASE[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const char DIGITS[] = "0123456789";
+static const char SPECIAL[] = "!@#$%^&*()-_=+[]{}|;:,.<>?";
 
 /**
  * Returns a cryptographically secure (or well-seeded fallback) random index in range [0, max - 1].
@@ -49,12 +52,16 @@ static unsigned int get_random_index(unsigned int max) {
 }
 
 /**
- * Generates a random password using lowercase letters.
+ * Generates a random password with configurable character sets.
+ * Guarantees at least one character from each selected category.
  *
  * @param length Desired character count
+ * @param include_upper Whether to include uppercase letters
+ * @param include_numbers Whether to include numbers
+ * @param include_special Whether to include special symbols
  * @return Dynamically allocated password string (caller must free)
  */
-char *generate_password(int length) {
+char *generate_password(int length, bool include_upper, bool include_numbers, bool include_special) {
     if (length <= 0) return NULL;
 
     char *password = (char *)malloc((size_t)length + 1);
@@ -63,12 +70,42 @@ char *generate_password(int length) {
         return NULL;
     }
 
-    size_t pool_len = strlen(LOWERCASE);
-    for (int i = 0; i < length; i++) {
+    char pool[256];
+    pool[0] = '\0';
+    strcat(pool, LOWERCASE);
+
+    int count = 0;
+    // Guarantee at least one lowercase letter
+    password[count++] = LOWERCASE[get_random_index((unsigned int)strlen(LOWERCASE))];
+
+    if (include_upper) {
+        strcat(pool, UPPERCASE);
+        password[count++] = UPPERCASE[get_random_index((unsigned int)strlen(UPPERCASE))];
+    }
+    if (include_numbers) {
+        strcat(pool, DIGITS);
+        password[count++] = DIGITS[get_random_index((unsigned int)strlen(DIGITS))];
+    }
+    if (include_special) {
+        strcat(pool, SPECIAL);
+        password[count++] = SPECIAL[get_random_index((unsigned int)strlen(SPECIAL))];
+    }
+
+    size_t pool_len = strlen(pool);
+    while (count < length) {
         unsigned int idx = get_random_index((unsigned int)pool_len);
-        password[i] = LOWERCASE[idx];
+        password[count++] = pool[idx];
     }
     password[length] = '\0';
+
+    // Fisher-Yates shuffle
+    for (int i = length - 1; i > 0; i--) {
+        unsigned int j = get_random_index((unsigned int)(i + 1));
+        char temp = password[i];
+        password[i] = password[j];
+        password[j] = temp;
+    }
+
     return password;
 }
 
@@ -244,6 +281,23 @@ void prompt_and_export_csv(const char **passwords, int count) {
 }
 
 /**
+ * Prompts user with a yes/no question.
+ */
+static bool prompt_yes_no(const char *prompt) {
+    char buffer[64];
+    printf("%s", prompt);
+    fflush(stdout);
+
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+        return false;
+    }
+    trim(buffer);
+    return (strcmp(buffer, "y") == 0 || strcmp(buffer, "Y") == 0 ||
+            strcmp(buffer, "yes") == 0 || strcmp(buffer, "YES") == 0);
+}
+}
+
+/**
  * Handles user interaction for generating a single password.
  */
 void handle_generate_single(void) {
@@ -253,7 +307,11 @@ void handle_generate_single(void) {
         return;
     }
 
-    char *password = generate_password(length);
+    bool include_upper = prompt_yes_no("Include uppercase letters? (y/n): ");
+    bool include_numbers = prompt_yes_no("Include numbers? (y/n): ");
+    bool include_special = prompt_yes_no("Include special characters? (y/n): ");
+
+    char *password = generate_password(length, include_upper, include_numbers, include_special);
     if (!password) return;
 
     printf("\nGenerated Password: %s\n", password);
@@ -275,11 +333,15 @@ void handle_generate_batch(void) {
         return;
     }
 
+    bool include_upper = prompt_yes_no("Include uppercase letters? (y/n): ");
+    bool include_numbers = prompt_yes_no("Include numbers? (y/n): ");
+    bool include_special = prompt_yes_no("Include special characters? (y/n): ");
+
     char *passwords[5] = {0};
     int count = 0;
 
     while (count < 5) {
-        char *pwd = generate_password(length);
+        char *pwd = generate_password(length, include_upper, include_numbers, include_special);
         if (!pwd) break;
 
         // Ensure uniqueness within the batch
