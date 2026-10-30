@@ -11,32 +11,44 @@ Checkout [SimpleDoc](DOCUMENTATION.md) for a simplified version.
 ### Prerequisites
 
 - **Java Development Kit (JDK)**: Version 8 or higher (JDK 17+ recommended).
-- Check your installation:
   ```bash
   javac -version
   java -version
+  ```
+- **C Compiler** (for C version): GCC, Clang, or MSVC.
+  ```bash
+  gcc --version
   ```
 
 ---
 
 ## How to Compile and Run
 
-1. Open your terminal or command prompt in the project root directory:
-   ```bash
-   cd "CLI Password Generator"
-   ```
+### Java Version
 
-2. Compile the Java source file:
+1. Open your terminal in the project root directory.
+2. Compile and run:
    ```bash
    javac Main.java
-   ```
-
-3. Run the compiled application:
-   ```bash
    java Main
    ```
+   *(Or on Java 11+: `java Main.java`)*
 
-*(Alternatively, on Java 11+, you can run the source file directly without manually compiling: `java Main.java`)*
+### C Version
+
+1. Compile with `gcc` (or run `make`):
+   ```bash
+   gcc -Wall -Wextra -std=c99 main.c -o password_generator
+   ```
+2. Run the compiled application:
+   - **Windows**:
+     ```cmd
+     password_generator.exe
+     ```
+   - **Linux / macOS**:
+     ```bash
+     ./password_generator
+     ```
 
 ---
 
@@ -91,6 +103,8 @@ Pick up and resolve the following open tasks in [Main.java](file:///c:/Code%20Ar
 
 ```
 CLI Password Generator/
-├── Main.java     # Main program containing CLI menu, logic, and TODO markers
-└── README.md     # Documentation, build instructions, and participant challenges
+├── Main.java           # Java CLI application
+├── main.c              # C port of the CLI application
+├── Makefile            # Build configuration for C version
+└── README.md           # Documentation, build instructions, and challenges
 ```
