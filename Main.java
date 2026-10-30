@@ -1,5 +1,13 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -75,6 +83,8 @@ public class Main {
         // TODO Issue 2: Evaluate and print password strength
         String strength = evaluateStrength(password);
         System.out.println("Password Strength: " + strength);
+
+        promptAndExport(scanner, Collections.singletonList(password));
     }
 
     /**
@@ -101,6 +111,7 @@ public class Main {
         for (String pwd : passwords) {
             System.out.println(count++ + ". " + pwd + " (Strength: " + evaluateStrength(pwd) + ")");
         }
+        promptAndExport(scanner, passwords);
     }
 
     /**
@@ -217,6 +228,53 @@ public class Main {
             return "Good";
         } else {
             return "Weak";
+        }
+    }
+
+    /**
+     * Prompts the user whether to export generated passwords to a CSV file.
+     *
+     * @param scanner Scanner for user input
+     * @param passwords Collection of passwords to export
+     */
+    private static void promptAndExport(Scanner scanner, Collection<String> passwords) {
+        System.out.print("\nExport to CSV? (y/n): ");
+        String response = scanner.nextLine().trim();
+
+        if (response.equalsIgnoreCase("y") || response.equalsIgnoreCase("yes")) {
+            System.out.print("Enter filename (default: passwords.csv): ");
+            String filename = scanner.nextLine().trim();
+            if (filename.isEmpty()) {
+                filename = "passwords.csv";
+            }
+            if (!filename.toLowerCase().endsWith(".csv")) {
+                filename += ".csv";
+            }
+            exportToCSV(new ArrayList<>(passwords), filename);
+        }
+    }
+
+    /**
+     * Exports a list of passwords to a CSV file, appending new entries and writing headers if new.
+     *
+     * @param passwords List of password strings
+     * @param filename Target CSV filename
+     */
+    public static void exportToCSV(List<String> passwords, String filename) {
+        File file = new File(filename);
+        boolean writeHeader = !file.exists() || file.length() == 0;
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
+            if (writeHeader) {
+                writer.println("Timestamp,Password,Length,Strength");
+            }
+            for (String pwd : passwords) {
+                writer.println(timestamp + "," + pwd + "," + pwd.length() + "," + evaluateStrength(pwd));
+            }
+            System.out.println("Successfully exported " + passwords.size() + " password(s) to " + file.getName());
+        } catch (IOException e) {
+            System.out.println("Error writing to CSV file: " + e.getMessage());
         }
     }
 }
